@@ -22,7 +22,7 @@ export const BACKGROUND_IMAGES = {
   market: "square.png",      // 시장/광장
   village: "town.png",       // 마을/집
   lazy: "bad_room.png",      // 여관 침대 (배드 엔딩)
-  hero: "town.png",          // 왕성/대전 (TODO: 전용 이미지 추가 시 교체)
+  hero: "hero.png",          // 왕성/대전 (TODO: 전용 이미지 생성 후 교체)
 } as const;
 
 // ==================== 특수 엔딩 ====================

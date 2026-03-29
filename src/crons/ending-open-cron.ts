@@ -9,10 +9,11 @@ const EndingOpenCron: CronJob = {
   schedule: "0 0 * * 0", // 매주 일요일 자정
   task: async (prisma: PrismaClient) => {
     try {
-      // endingState=1 (DISABLED) 인 캐릭터 + Status 조회
+      // endingState=1 (DISABLED) 인 캐릭터만 대상 (2=이미 판정, 3=확인 완료 → 제외)
       const characters = await prisma.character.findMany({
         where: {
           endingState: 1,
+          endingCode: null, // 이미 판정된 캐릭터 이중 방지
         },
         include: {
           status: true,

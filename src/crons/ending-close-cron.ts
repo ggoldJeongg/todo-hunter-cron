@@ -11,6 +11,7 @@ const EndingCloseCron: CronJob = {
         where: {},
         data: {
           endingState: 1,
+          endingCode: null, // 이전 주 엔딩 코드 초기화
         },
       });
       console.log(

@@ -15,12 +15,12 @@
   "devDependencies": {
     "@types/node": "^22.13.9",
     "@types/node-cron": "^3.0.11",
-    "prisma": "^6.4.1",
+    "prisma": "~6.4.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.2"
   },
   "dependencies": {
-    "@prisma/client": "^6.4.1",
+    "@prisma/client": "~6.4.1",
     "dotenv": "^16.4.7",
     "node-cron": "^3.0.3"
   }
