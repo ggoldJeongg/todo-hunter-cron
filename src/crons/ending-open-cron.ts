@@ -1,25 +1,69 @@
 import { PrismaClient } from "@prisma/client";
 import { CronJob } from "../types/cron-type.js";
+import { EndingState } from "../types/ending-state.js";
+import { judgeEnding } from "../lib/ending-judge.js";
 
-// 엔딩 open 크론잡 (pending 유저 X)
+// 엔딩 open 크론잡
+// 매주 일요일 자정: 스탯 조합을 분석하여 엔딩을 판정하고 endingState를 ENABLED(2)로 변경
 const EndingOpenCron: CronJob = {
-  name: "캐릭터 엔딩 open 업데이트",
+  name: "캐릭터 엔딩 판정 + open 업데이트",
   schedule: "0 0 * * 0", // 매주 일요일 자정
   task: async (prisma: PrismaClient) => {
     try {
-      const result = await prisma.character.updateMany({
+      // DISABLED 인 캐릭터만 대상 (ENABLED=이미 판정, CHECKED=확인 완료 → 제외)
+      const characters = await prisma.character.findMany({
         where: {
-          endingState: 1,
+          endingState: EndingState.DISABLED,
+          endingCode: null, // 이미 판정된 캐릭터 이중 방지
         },
-        data: {
-          endingState: 2,
+        include: {
+          status: true,
         },
       });
+
+      if (characters.length === 0) {
+        console.log(`[${EndingOpenCron.name}] 대상 캐릭터가 없습니다.`);
+        return;
+      }
+
+      let updatedCount = 0;
+
+      for (const character of characters) {
+        if (!character.status) {
+          console.warn(
+            `[${EndingOpenCron.name}] 캐릭터(${character.id})에 Status가 없습니다. 건너뜁니다.`
+          );
+          continue;
+        }
+
+        const { str, int, emo, fin, liv } = character.status;
+
+        // 엔딩 판정
+        const ending = judgeEnding({ str, int, emo, fin, liv });
+
+        // 캐릭터에 엔딩 결과 저장 + ENABLED 전환
+        await prisma.character.update({
+          where: { id: character.id },
+          data: {
+            endingState: EndingState.ENABLED,
+            endingCode: ending.code,
+          },
+        });
+
+        console.log(
+          `[${EndingOpenCron.name}] 캐릭터(${character.id}): ` +
+            `STR=${str} INT=${int} EMO=${emo} FIN=${fin} LIV=${liv} → ` +
+            `${ending.name} (${ending.code})`
+        );
+
+        updatedCount++;
+      }
+
       console.log(
-        `[${EndingOpenCron.name}] ${result.count}개의 character endingState가 업데이트되었습니다.`
+        `[${EndingOpenCron.name}] ${updatedCount}개의 캐릭터 엔딩이 판정되었습니다.`
       );
     } catch (error) {
-      console.log(`[${EndingOpenCron.name}] 실패:`, error);
+      console.error(`[${EndingOpenCron.name}] 실패:`, error);
     }
   },
 };
