@@ -4,9 +4,38 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
+  check-ending-sync:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout cron repo
+        uses: actions/checkout@v4
+        with:
+          path: todo-hunter-cron
+
+      - name: Checkout main app repo
+        uses: actions/checkout@v4
+        with:
+          repository: ggoldJeongg/todo-hunter
+          ref: main
+          path: todo-hunter
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+
+      - name: Verify ending codes are in sync
+        working-directory: todo-hunter-cron
+        run: npm run check-endings
+
   deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: [self-hosted, todohunter-cron-runner]
     steps:
       - name: Checkout code
