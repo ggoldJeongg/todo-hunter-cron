@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { CronJob } from "../types/cron-type.js";
+import { EndingState } from "../types/ending-state.js";
 import { judgeEnding } from "../lib/ending-judge.js";
 
 // 엔딩 open 크론잡
@@ -9,10 +10,10 @@ const EndingOpenCron: CronJob = {
   schedule: "0 0 * * 0", // 매주 일요일 자정
   task: async (prisma: PrismaClient) => {
     try {
-      // endingState=1 (DISABLED) 인 캐릭터만 대상 (2=이미 판정, 3=확인 완료 → 제외)
+      // DISABLED 인 캐릭터만 대상 (ENABLED=이미 판정, CHECKED=확인 완료 → 제외)
       const characters = await prisma.character.findMany({
         where: {
-          endingState: 1,
+          endingState: EndingState.DISABLED,
           endingCode: null, // 이미 판정된 캐릭터 이중 방지
         },
         include: {
@@ -40,11 +41,11 @@ const EndingOpenCron: CronJob = {
         // 엔딩 판정
         const ending = judgeEnding({ str, int, emo, fin, liv });
 
-        // 캐릭터에 엔딩 결과 저장 + endingState=2 (ENABLED)
+        // 캐릭터에 엔딩 결과 저장 + ENABLED 전환
         await prisma.character.update({
           where: { id: character.id },
           data: {
-            endingState: 2,
+            endingState: EndingState.ENABLED,
             endingCode: ending.code,
           },
         });

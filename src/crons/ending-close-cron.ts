@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { CronJob } from "../types/cron-type.js";
+import { EndingState } from "../types/ending-state.js";
 
 // 엔딩 close 크론잡 (all 유저)
 const EndingCloseCron: CronJob = {
@@ -10,7 +11,7 @@ const EndingCloseCron: CronJob = {
       const result = await prisma.character.updateMany({
         where: {},
         data: {
-          endingState: 1,
+          endingState: EndingState.DISABLED,
           endingCode: null, // 이전 주 엔딩 코드 초기화
         },
       });
