@@ -4,7 +4,6 @@ import { CronJob } from "../types/cron-type.js";
 import EndingCloseCron from "./ending-close-cron.js";
 import EndingOpenCron from "./ending-open-cron.js";
 import StatusResetCron from "./status-reset-cron.js";
-import WeeklyQuestResetCron from "./weekly-quest-reset-cron.js";
 import WillpowerResetCron from "./willpower-reset-cron.js";
 import TestLogCron from "./test-log-cron.js";
 import TestPrismaCron from "./test-prisma-cron.js";
@@ -16,7 +15,6 @@ const cronJobs: CronJob[] = [
   EndingOpenCron, // 일요일 자정
   EndingCloseCron, // 월요일 자정
   StatusResetCron, // 월요일 자정
-  WeeklyQuestResetCron, // 월요일 자정
   TestLogCron,
   TestPrismaCron,
 ];
